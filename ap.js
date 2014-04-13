@@ -3,39 +3,53 @@ var POS_INFINITY = Infinity;
 
 // 主程序入口
 function init(edges /*nodePos*/, vetextNum, options) {    
-    // 参数
-    var count = options && options.count || 1000,  // 最大迭代次数
-        lamda = options && options.lamda || 0.9;  // 阻尼系数
+    /** 参数
+     *
+     * power决定聚类数目, 越大聚类越多
+     * lamda 决定迭代次数, 越大迭代次数越多 
+     */
+    var maxits = options && options.maxits || 1000,  // 最大迭代次数
+        convits = options && options.convits || 100,
+        lamda = options && options.lamda || 0.9,  // 阻尼系数(0.5 - 1)
+        power = options && options.power || 1;
 
-    var i = 0,
+    var iterationCounter = 0,
+        centerCounter = 0, // iterationCounter, centerCounter迭代计数器
         num = vetextNum, 
         
         oldR, oldA,
         R = initArray(num, 0),
         A = initArray(num, 0),
         
-        centerSet, ret,
-        belong;
+        ret, belong,
+        centerSet = [], 
+        centerSetPrev;
 
     // Step1: 计算相似矩阵, 基于距离
-    // var S = calulateSimilarity(nodePos);
+    // var S = calulateSimilarity(nodePos, power);
     // Step1: 计算相似矩阵, 基于图
-    var S = calulateSimilarityGaph(edges, num);
+    var S = calulateSimilarityGaph(edges, num, power);
 
-    while ((i++) < count) {
+    while ((iterationCounter++) < maxits) {
         // console.log('第' + i + '次迭代');
         oldR = copyArray(R);
         oldA = copyArray(A);
+        centerSetPrev = copyArray(centerSet);
 
         // Step2: 迭代R, A, 寻找聚类中心
         updateRA(num, S, R, A, oldR, oldA, lamda);
 
         // Step3: 划分数据 max{r(i, k) + a(i, k)}
-        belong = belongOne(R, A);
+        // ret = belongOne(R, A);
+        // centerSet = ret.centerSet;
 
         // Step3: 划分数据 r(k, k) + a(k, k) > 0
         centerSet = centerCluster(R, A);
         ret = partionCluster(num, S, centerSet);
+        
+        // 簇中心在convits内不发生变化, 结束迭代
+        arrEqual(centerSet, centerSetPrev) ? centerCounter++ : centerCounter = 0;
+        if (centerCounter > convits) break;
     }
 
     // Step3:  max{r(i, k) + a(i, k)}
@@ -46,8 +60,6 @@ function init(edges /*nodePos*/, vetextNum, options) {
      * [25,26,32],
      * [10,15,16,19,21,23,24,27,28,29,30,31,33,34]
      */ 
-    // return getClub(belong);
-
     // Step3: r(k, k) + a(k, k) > 0
     /**
      * 对zachary划分3组：
@@ -57,10 +69,20 @@ function init(edges /*nodePos*/, vetextNum, options) {
      */
 
     ret.club = getClub(ret.belong);
+    ret.iteration = iterationCounter - 1;
     return ret;
 }
 
 /*************************** 工具函数 ********************************************/
+
+function arrEqual(arr1, arr2) {
+    if (arr1.length != arr2.length) return false;
+    
+    for (var i = 0; i < arr1.length; i++) {
+        if (arr1[i] != arr2[i]) return false;
+    }
+    return true;
+}
 
 function getClub(belong) {
     var club = {};
@@ -110,7 +132,7 @@ function centerCluster(R, A) {
     var centerSet = [];
     for (var i = 0, len = R.length; i < len; i++) {
         if (R[i][i] + A[i][i] > 0) {
-            centerSet.push(i);
+            centerSet.push(i + 1);
         } 
     }
 
@@ -133,20 +155,20 @@ function partionCluster(num, S, centerSet) {
         
         for (var j = 0; j < centerSet.length; j++) {
             // 如果是聚类中心点本身, 距离为0, 跳出循环
-            if (i == centerSet[j]) {
-                belong[i] = j + 1;
+            if (i == centerSet[j] - 1) {
+                belong[i] = i + 1;
                 j = centerSet.length;
                 min = 0;
             }
 
-            d = -S[i][centerSet[j]];
-            if (i > centerSet[j]) {
-                d = -S[centerSet[j]][i]; 
+            d = -S[i][centerSet[j] - 1];
+            if (i > centerSet[j] - 1) {
+                d = -S[centerSet[j] - 1][i]; 
             }
             
             if (d < min) {
                 min = d; 
-                belong[i] = j + 1;
+                belong[i] = centerSet[j];
             }
         }
 
@@ -164,7 +186,7 @@ function partionCluster(num, S, centerSet) {
 function belongOne (R, A) {
     var r, a, 
         max, type, 
-        belong = [];
+        belong = [], centerSet = [];
 
     for (var i = 0, len = R.length; i < len; i++) {
         r = R[i];
@@ -174,13 +196,20 @@ function belongOne (R, A) {
         for (var j = 0, len = R.length; j < len; j++) {
             if (r[j] + a[j] > max) {
                 max = r[j] + a[j];
-                type = j;
+                type = j + 1;
             }
         }
-        belong[i] = type + 1;
+        
+        belong[i] = type;
+        if (centerSet.indexOf(type) == -1) {
+            centerSet.push(type);
+        }
     }
 
-    return belong;
+    return {
+        belong: belong,
+        centerSet: centerSet
+    };
 }
 
 
@@ -293,9 +322,10 @@ function updateRA(num, S, R, A, oldR, oldA, lamda) {
  *
  * @param {Array} nodePos, 二维数组包含点的二维(x, y)坐标信息，如:
  * [[0.1, 0.4], [0.6, 0.2]...]
+ *
  * @return {Array} 返回S[][], 一个二维数组
  */
-function calulateSimilarity(nodePos) {
+function calulateSimilarity(nodePos, power) {
     var len = nodePos.length,
         i, j,        
         dist,
@@ -320,7 +350,7 @@ function calulateSimilarity(nodePos) {
         : tmp[Math.floor(size / 2)];
     
     for (i = 0; i < len; i++) {
-        S[i][i] = medium;
+        S[i][i] = medium * power;
     }
 
     return S;
@@ -343,7 +373,6 @@ function euclidDistance(x, y) {
     }
     
     return -Math.sqrt(dist);
-    // return -dist;
 }
 
 
@@ -354,7 +383,7 @@ function euclidDistance(x, y) {
  *      [[0, 1], [0, 2]...], 表示点0和点1、点2相连, 点的索引从0开始
  * @param {number} num 节点个数
  */
-function calulateSimilarityGaph(edges, num) {
+function calulateSimilarityGaph(edges, num, power) {
     var paths = [], path;
     var flat = [], medium;
     var adjMatrix = initAdjM(edges, num);
@@ -377,7 +406,7 @@ function calulateSimilarityGaph(edges, num) {
         medium = flat[Math.floor(flat.length / 2)];
     }
     for (var i = 0; i < num; i++) {
-        paths[i][i] = medium;
+        paths[i][i] = medium * power;
     }
     
     return paths;
