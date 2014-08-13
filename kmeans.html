@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kmeans Demo</title>
+    <style>
+        canvas {
+            border: 1px solid #aaa;
+        }
+    </style>
+</head>
+<body>
+<p>
+    数据量：<input type="text" id="data" value="20">
+</p>
+<p>
+    聚类数：<input type="text" id="cluster" value="3">
+</p>
+<p>
+    阈值：<input type="text" id="thread" value="1">
+</p>
+<p>
+    <button id="init">init</button>
+    <button id="run">run</button>
+</p>
+
+<canvas id="pass"  width="400" height="300"></canvas>
+<canvas id="now"  width="400" height="300"></canvas>
+
+<script src="kmeans.js"></script>
+</body>
+</html>
