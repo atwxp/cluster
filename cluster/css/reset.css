@@ -1,0 +1,65 @@
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    padding: 0;
+    margin: 0;    
+}
+
+body {
+    font: 12px/1.5 '微软雅黑' serif;
+}
+
+.source {
+    margin: 20px auto;
+    width: 960px;
+}
+.tit  div {
+    float: left;
+    margin-right: 100px;
+}
+
+.apParam {
+    margin-top: 10px;
+    visibility: hidden;
+}
+
+.apParam div {
+    float: left;
+    margin-right: 10px;
+}
+.btn {
+    margin-top: 10px;
+}
+
+.result > div {
+    float: left;
+    overflow: hidden;
+    width: 49%;
+    margin: 0 0.5%;
+    height: 500px;
+    box-shadow: 1px 1px #ccc, -1px -1px #ccc;
+}
+.result .chart {
+    visibility: hidden;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 600px;
+    height: 400px;
+    margin-left: -300px;
+    margin-top: -200px;
+}
+
+
+.clearfix:after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+.cluster {
+    margin: 10px 20px;
+    font-size: 14px;
+    line-height: 2;
+}

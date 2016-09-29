@@ -1,0 +1,6 @@
+Graph of 34 nodes
+Total 2 groups
+Each node has membership in 1.03 groups on average
+group	count
+32	17
+0	18

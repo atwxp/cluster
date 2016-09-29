@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clustering</title>
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel='stylesheet' href='css/relation.css'>
+
+    <script src='js/lib/raphael.js'></script>
+    <script src='js/lib/underscore.js'></script>
+    <script src='js/lib/jquery-1.9.1.min.js'></script>
+    <script src='js/lib/relation.js'></script>
+    <script src='js/lib/echarts.js'></script>
+    
+    <script src='js/ap.js'></script>
+    <script src='js/apData.js'></script>
+    <script src='js/index.js'></script>
+</head>
+<body>
+    <div class="source">
+        <form action="php/GN.php" method="POST">
+            <div class="tit clearfix">
+                <div>
+                    <label for="dataset">数据源：</label>
+                    <select name="dataset" id="dataset">
+                        <option value="strike">strike</option>
+                        <option value="zachary">Zachary Club</option>
+                        <option value="dolphins">Dolphin Network</option>
+                        <option value="football">Football Club</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="alg">算法：</label>
+                    <select name="ag" id="alg">
+                        <option value="GN">GN</option>
+                        <option value="AP">AP</option>
+                        <option value="SLPA">SLPA</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="apParam clearfix">
+                <div>
+                    <label for="prefrence">prefrence：</label>
+                    <input type="text" id="prefrence" value="1">
+                </div>
+                <div>
+                    <label for="lamda">lamda(0-1)：</label>
+                    <input type="number" min="0.5" max="1" step="0.1"value="0.9" id="lamda">
+                </div>
+                <div>
+                    <label for="maxits">Max iteration:</label>
+                    <input type="text" id="maxits" value="1000">
+                </div>
+                <div>
+                    <label for="convits">convits：</label>
+                    <input type="text" id="convits" value="100">
+                </div>
+            </div>
+            
+            <div class="btn">
+                <button type="submit" id="restart">restart</button>
+                <button type="submit" id="start">start</button>
+                <button type="button" id="parameter">parameter</button>
+            </div>
+        </form>
+    </div>
+    
+    
+    <div class="result clearfix">
+        <div class="init"></div>
+        <div class="done"></div>
+        <div class="chart"></div>
+    </div>
+    
+    <p class="cluster"></p>
+</body>
+</html>
